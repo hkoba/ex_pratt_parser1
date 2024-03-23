@@ -46,6 +46,7 @@ fn infix_binding_power(c: char) -> Option<(u8, u8)> {
     match c {
         '+' | '-' => Some((1, 2)),
         '*' | '/' => Some((3, 4)),
+        '・' => Some((6, 5)),
         _ => None
     }
 }
@@ -64,8 +65,15 @@ mod tests {
 
         let s = expr("1 + 2 * 3").unwrap();
 
-        // println!("s is:\n{:#?}", *s);
+        // cargo test -- --nocapture
+        println!("s is:\n{:#?}", *s);
 
-        assert_eq!(s.to_string(), "(+ 1 (* 2 3))")
+        assert_eq!(s.to_string(), "(+ 1 (* 2 3))");
+
+        let s = expr("a + b * c * d + e").unwrap();
+        assert_eq!(s.to_string(), "(+ (+ a (* (* b c) d)) e)");
+
+        let s = expr("f ・ g ・ h").unwrap();
+        assert_eq!(s.to_string(), "(・ f (・ g h))");
     }
 }
