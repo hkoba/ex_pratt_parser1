@@ -30,6 +30,18 @@ fn expr_bp(lexer: &mut Lexer, min_bp: u8) -> Result<Box<Sexp>, String> {
             t => return Err(format!("operator is expected: {:?}", t)),
         };
 
+        if let Some((l_bp, ())) = postfix_binding_power(op) {
+            if l_bp < min_bp {
+                break;
+            }
+            lexer.next();
+
+            lhs = cons(atom(op.to_string().as_str())
+                       , cons(lhs, nil()));
+
+            continue;
+        }
+
         if let Some((l_bp, r_bp)) = infix_binding_power(op) {
             if l_bp < min_bp {
                 break;
@@ -51,7 +63,7 @@ fn infix_binding_power(c: char) -> Option<(u8, u8)> {
     match c {
         '+' | '-' => Some((1, 2)),
         '*' | '/' => Some((3, 4)),
-        '・' => Some((8, 7)),
+        '・' => Some((10, 9)),
         _ => None
     }
 }
@@ -59,6 +71,13 @@ fn infix_binding_power(c: char) -> Option<(u8, u8)> {
 fn prefix_binding_power(c: char) -> Option<((), u8)> {
     match c {
         '+' | '-' => Some(((), 5)),
+        _ => None
+    }
+}
+
+fn postfix_binding_power(c: char) -> Option<(u8, ())> {
+    match c {
+        '!' => Some((7, ())),
         _ => None
     }
 }
@@ -94,5 +113,11 @@ mod tests {
         let s = expr("--f ・ g").unwrap();
         assert_eq!(s.to_string(), "(- (- (・ f g)))");
 
+        let s = expr("-9!").unwrap();
+        assert_eq!(s.to_string(), "(- (! 9))");
+
+        let s = expr("f ・ g !").unwrap();
+        assert_eq!(s.to_string(), "(! (・ f g))");
+        
     }
 }
