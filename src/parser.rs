@@ -10,11 +10,16 @@ pub fn expr(input: &str) -> Result<Box<Sexp>, String> {
 fn expr_bp(lexer: &mut Lexer, min_bp: u8) -> Result<Box<Sexp>, String> {
     let mut lhs = match lexer.next() {
         Token::EOF => nil(),
+        Token::Op(c) => {
+            if let Some(((), r_bp)) = prefix_binding_power(c) {
+                let rhs = expr_bp(lexer, r_bp).unwrap();
+                cons(atom(c.to_string().as_ref()), cons(rhs, nil()))
+            } else {
+                return Err(format!("bad operator: {}", c))
+            }
+        }
         Token::Atom(c) => {
             atom(c.to_string().as_str())
-        },
-        c => {
-            return Err(format!("atom is expected: {:?}", c))
         }
     };
 
@@ -46,7 +51,14 @@ fn infix_binding_power(c: char) -> Option<(u8, u8)> {
     match c {
         '+' | '-' => Some((1, 2)),
         '*' | '/' => Some((3, 4)),
-        '・' => Some((6, 5)),
+        '・' => Some((8, 7)),
+        _ => None
+    }
+}
+
+fn prefix_binding_power(c: char) -> Option<((), u8)> {
+    match c {
+        '+' | '-' => Some(((), 5)),
         _ => None
     }
 }
@@ -75,5 +87,12 @@ mod tests {
 
         let s = expr("f ・ g ・ h").unwrap();
         assert_eq!(s.to_string(), "(・ f (・ g h))");
+
+        let s = expr("--1 * 2").unwrap();
+        assert_eq!(s.to_string(), "(* (- (- 1)) 2)");
+
+        let s = expr("--f ・ g").unwrap();
+        assert_eq!(s.to_string(), "(- (- (・ f g)))");
+
     }
 }
