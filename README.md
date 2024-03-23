@@ -8,7 +8,7 @@ This project is a personal practice implementation inspired by [minipratt](https
 - uchar じゃない、 char だった(C++脳だ)
 - メソッドの引数宣言に `(self: &mut Self)` を忘れる
 
-- 戻り型は `->` で書くんだった(typescript とごっちゃになってる)
+- 戻り型は `->` で書くんだった(typescript の `:` とごっちゃになってる)
 - `.chars()` 多分初めて使った
   ```
   std::str::Chars<'_>
@@ -33,3 +33,8 @@ This project is a personal practice implementation inspired by [minipratt](https
 - Display 周り
   - `write!(f, "fmt", val)?;` 忘れてる
   - `.to_string()` もだ
+- `println!(fmt, ...)` も忘れてやんの…
+- `cargo test` から println したいときは↓こうだと
+  ```sh
+  cargo test -- --nocapture
+  ```
