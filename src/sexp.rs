@@ -1,7 +1,7 @@
 // use lexer::Token::*;
 use std::fmt;
 
-#[derive(PartialOrd, PartialEq, Clone)]
+#[derive(PartialOrd, PartialEq, Clone, Debug)]
 pub enum Sexp {
     Atom(String),
     Cons(Box<Sexp>, Box<Sexp>),

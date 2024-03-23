@@ -4,11 +4,12 @@ use crate::sexp::*;
 pub fn expr(input: &str) -> Result<Box<Sexp>, String> {
     let mut lexer = Lexer::new(input);
 
-    expr_bp(&mut lexer)
+    expr_bp(&mut lexer, 0)
 }
 
-fn expr_bp(lexer: &mut Lexer) -> Result<Box<Sexp>, String> {
-    let lhs = match lexer.next() {
+fn expr_bp(lexer: &mut Lexer, min_bp: u8) -> Result<Box<Sexp>, String> {
+    let mut lhs = match lexer.next() {
+        Token::EOF => nil(),
         Token::Atom(c) => {
             atom(c.to_string().as_str())
         },
@@ -18,16 +19,35 @@ fn expr_bp(lexer: &mut Lexer) -> Result<Box<Sexp>, String> {
     };
 
     loop {
-        let op = match lexer.next() {
+        let op = match lexer.peek() {
             Token::EOF => break,
             Token::Op(c) => c,
             t => return Err(format!("operator is expected: {:?}", t)),
         };
 
-        todo!();
+        if let Some((l_bp, r_bp)) = infix_binding_power(op) {
+            if l_bp < min_bp {
+                break;
+            }
+            lexer.next();
+
+            let rhs = expr_bp(lexer, r_bp).unwrap();
+
+            lhs = cons(atom(op.to_string().as_str())
+                       , cons(lhs
+                              , cons(rhs, nil())));
+        }
     }
 
     Ok(lhs)
+}
+
+fn infix_binding_power(c: char) -> Option<(u8, u8)> {
+    match c {
+        '+' | '-' => Some((1, 2)),
+        '*' | '/' => Some((3, 4)),
+        _ => None
+    }
 }
 
 #[cfg(test)]
@@ -36,8 +56,16 @@ mod tests {
 
     #[test]
     fn it_works() {
+        let s = expr("").unwrap();
+        assert_eq!(s.to_string(), "()");
+
         let s = expr("1").unwrap();
         assert_eq!(s.to_string(), "1");
-        // assert_eq!(expr("1 + 2 * 3").unwrap().to_string(), "(+ 1 (* 2 3))")
+
+        let s = expr("1 + 2 * 3").unwrap();
+
+        // println!("s is:\n{:#?}", *s);
+
+        assert_eq!(s.to_string(), "(+ 1 (* 2 3))")
     }
 }
