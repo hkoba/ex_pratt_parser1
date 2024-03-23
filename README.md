@@ -26,3 +26,4 @@
 - Option::map_or を忘れてる
 - enum の `derive(Debug, Clone, Copy, PartialEq, Eq)` 、これは覚えたほうが良さそう
 
+- mod の書き方も忘れてる。
