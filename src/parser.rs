@@ -41,8 +41,16 @@ fn expr_bp(lexer: &mut Lexer, min_bp: u8) -> Result<Box<Sexp>, String> {
             }
             lexer.next();
 
-            lhs = cons(atom(op.to_string().as_str())
-                       , cons(lhs, nil()));
+            lhs = if op == '[' {
+                let rhs = expr_bp(lexer, 0).unwrap();
+                assert_eq!(lexer.next(), Token::Op(']'));
+                cons(atom(op.to_string().as_str())
+                     , cons(lhs
+                            ,cons(rhs, nil())))
+            } else {
+                cons(atom(op.to_string().as_str())
+                     , cons(lhs, nil()))
+            };
 
             continue;
         }
@@ -86,7 +94,7 @@ fn prefix_binding_power(c: char) -> Option<((), u8)> {
 
 fn postfix_binding_power(c: char) -> Option<(u8, ())> {
     match c {
-        '!' => Some((7, ())),
+        '!' | '[' => Some((7, ())),
         _ => None
     }
 }
@@ -130,5 +138,8 @@ mod tests {
 
         let s = expr("(((0)))").unwrap();
         assert_eq!(s.to_string(), "0");
+
+        let s = expr("x[0][1]").unwrap();
+        assert_eq!(s.to_string(), "([ ([ x 0) 1)");
     }
 }
