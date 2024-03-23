@@ -1,6 +1,6 @@
 ## これは何？
 
-今朝読んだ @matklad 氏の [Pratt Parser の紹介記事](https://matklad.github.io/2020/04/13/simple-but-powerful-pratt-parsing.html)が猛烈に面白かったので、rust の復習兼ねてやってみただけ。
+This project is a personal practice implementation inspired by [minipratt](https://github.com/matklad/minipratt) and [the accompanying blog post on Pratt parsing](https://matklad.github.io/2020/04/13/simple-but-powerful-pratt-parsing.html) by Aleksey Kladov. It's not entirely original but serves as an educational exercise in understanding and applying concepts from the article.
 
 ### 何を忘れてたか
 
