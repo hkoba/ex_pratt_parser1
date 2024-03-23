@@ -8,6 +8,20 @@ pub enum Sexp {
     Nil
 }
 
+use Sexp::*;
+
+pub fn nil() -> Box<Sexp> {
+    Box::new(Nil)
+}
+
+pub fn atom(s: &str) -> Box<Sexp> {
+    Box::new(Atom(String::from(s)))
+}
+
+pub fn cons(first: Box<Sexp>, rest: Box<Sexp>) -> Box<Sexp> {
+    Box::new(Cons(first, rest))
+}
+
 impl fmt::Display for Sexp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -43,21 +57,7 @@ impl fmt::Display for Sexp {
 
 #[cfg(test)]
 mod tests {
-    // use super::*;
-    use super::Sexp;
-    use super::Sexp::*;
-
-    fn nil() -> Box<Sexp> {
-        Box::new(Nil)
-    }
-
-    fn atom(s: &str) -> Box<Sexp> {
-        Box::new(Atom(String::from(s)))
-    }
-
-    fn cons(first: Box<Sexp>, rest: Box<Sexp>) -> Box<Sexp> {
-        Box::new(Cons(first, rest))
-    }
+    use super::*;
 
     #[test]
     fn disp1() {
@@ -72,5 +72,12 @@ mod tests {
         assert_eq!(Cons(atom("foo")
                         , atom("bar")
         ).to_string(), "(foo . bar)");
+
+        assert_eq!(cons(cons(atom("foo")
+                             , cons(atom("bar"), nil()))
+                        , cons(cons(atom("baz")
+                                    , cons(atom("qux"), nil())), nil())
+        ).to_string(), "((foo bar) (baz qux))");
+
     }
 }
