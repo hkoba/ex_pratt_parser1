@@ -50,4 +50,15 @@ mod tests {
         assert_eq!(l1.next(), Token::Atom('r'));
         assert_eq!(l1.next(), Token::EOF);
     }
+
+    #[test]
+    fn it_works_for_string_too() {
+        let s = String::from("xx yy");
+        let mut l2 = Lexer::new(&s);
+
+        assert_eq!(l2.next(), Token::Atom('x'));
+        assert_eq!(l2.next(), Token::Atom('x'));
+        assert_eq!(l2.next(), Token::Atom('y'));
+        assert_eq!(l2.next(), Token::Atom('y'));
+    }
 }
