@@ -61,11 +61,22 @@ fn expr_bp(lexer: &mut Lexer, min_bp: u8) -> Result<Box<Sexp>, String> {
             }
             lexer.next();
 
-            let rhs = expr_bp(lexer, r_bp).unwrap();
+            lhs = if op == '?' {
+                let mhs = expr_bp(lexer, 0).unwrap();
+                assert_eq!(lexer.next(), Token::Op(':'));
+                let rhs = expr_bp(lexer, r_bp).unwrap();
 
-            lhs = cons(atom(op.to_string().as_str())
-                       , cons(lhs
-                              , cons(rhs, nil())));
+                cons(atom("?")
+                     , cons(lhs
+                            , cons(mhs
+                                   , cons(rhs, nil()))))
+            } else {
+                let rhs = expr_bp(lexer, r_bp).unwrap();
+
+                cons(atom(op.to_string().as_str())
+                     , cons(lhs
+                            , cons(rhs, nil())))
+            };
 
             continue;
         }
@@ -78,23 +89,25 @@ fn expr_bp(lexer: &mut Lexer, min_bp: u8) -> Result<Box<Sexp>, String> {
 
 fn infix_binding_power(c: char) -> Option<(u8, u8)> {
     match c {
-        '+' | '-' => Some((1, 2)),
-        '*' | '/' => Some((3, 4)),
-        '・' => Some((10, 9)),
+        '=' => Some((2, 1)),
+        '?' => Some((4, 3)),
+        '+' | '-' => Some((5, 6)),
+        '*' | '/' => Some((7, 8)),
+        '・' => Some((14, 13)),
         _ => None
     }
 }
 
 fn prefix_binding_power(c: char) -> Option<((), u8)> {
     match c {
-        '+' | '-' => Some(((), 5)),
+        '+' | '-' => Some(((), 9)),
         _ => None
     }
 }
 
 fn postfix_binding_power(c: char) -> Option<(u8, ())> {
     match c {
-        '!' | '[' => Some((7, ())),
+        '!' | '[' => Some((11, ())),
         _ => None
     }
 }
@@ -141,5 +154,16 @@ mod tests {
 
         let s = expr("x[0][1]").unwrap();
         assert_eq!(s.to_string(), "([ ([ x 0) 1)");
+
+        let s = expr(
+        "a ? b :
+         c ? d
+         : e",
+        ).unwrap();
+        println!("ternary expr: {:#?}", s);
+        assert_eq!(s.to_string(), "(? a b (? c d e))");
+
+        let s = expr("a = 0 ? b : c = d").unwrap();
+        assert_eq!(s.to_string(), "(= a (= (? 0 b c) d))");
     }
 }
